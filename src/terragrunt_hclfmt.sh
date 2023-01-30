@@ -8,7 +8,7 @@ function terragruntHCLFmt {
     exit 0
   fi
 
-  fmtOutput=$(${tfBinary} hclfmt --terragrunt-check ${*} 2>&1)
+  fmtOutput=$(${tfBinary} hclfmt --terragrunt-check)
   fmtExitCode=${?}
 
   # Exit code of 0 indicates success. Print the output and exit.
