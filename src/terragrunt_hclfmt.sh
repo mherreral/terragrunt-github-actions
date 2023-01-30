@@ -8,7 +8,7 @@ function terragruntHCLFmt {
     exit 0
   fi
 
-  fmtOutput=$(${tfBinary} hclfmt  --terragrunt-check ${*} 2>&1)
+  fmtOutput=$(${tfBinary} hclfmt --terragrunt-check ${*} 2>&1)
   fmtExitCode=${?}
 
   # Exit code of 0 indicates success. Print the output and exit.
@@ -17,18 +17,21 @@ function terragruntHCLFmt {
     echo "${fmtOutput}"
     echo
     exit ${fmtExitCode}
-  fi
-
-  # Exit code of 2 indicates a parse error. Print the output and exit.
-  if [ ${fmtExitCode} -eq 1 ]; then
+  else
     echo "hclfmt: error: failed to format Terragrunt files"
     echo "${fmtOutput}"
   fi
 
+  # # Exit code of 2 indicates a parse error. Print the output and exit.
+  # if [ ${fmtExitCode} -eq 1 ]; then
+  #   echo "hclfmt: error: failed to format Terragrunt files"
+  #   echo "${fmtOutput}"
+  # fi
+
   if [ "$GITHUB_EVENT_NAME" == "pull_request" ] && [ "${tfComment}" == "1" ]; then
     fmtCommentWrapper="#### \`${tfBinary} hclfmt\` Failed:
 
-echo "FMT OUTPUT ${fmtOutput}"
+# echo "FMT OUTPUT ${fmtOutput}"
 
 *Workflow: \`${GITHUB_WORKFLOW}\`, Action: \`${GITHUB_ACTION}\`, Working Directory: \`${tfWorkingDir}\`, Workspace: \`${tfWorkspace}\`*"
 
@@ -37,16 +40,16 @@ echo "FMT OUTPUT ${fmtOutput}"
     fmtPayload=$(echo "${fmtCommentWrapper}" | jq -R --slurp '{body: .}')
     fmtCommentsURL=$(cat ${GITHUB_EVENT_PATH} | jq -r .pull_request.comments_url)
     echo "fmt: info: commenting on the pull request"
-    echo "${fmtPayload}" | curl -s -S -H "Authorization: token ${GITHUB_TOKEN}" --header "Content-Type: application/json" --data @- "${fmtCommentsURL}" > /dev/null
+    echo "${fmtPayload}" | curl -s -S -H "Authorization: token ${GITHUB_TOKEN}" --header "Content-Type: application/json" --data @- "${fmtCommentsURL}" >/dev/null
   fi
 
   # Write changes to branch
-  echo "::set-output name=tf_actions_fmt_written::false"
+  echo "tf_actions_fmt_written=false" >> $GITHUB_OUTPUT
   if [ "${tfFmtWrite}" == "1" ]; then
     echo "fmt: info: Terraform files in ${tfWorkingDir} will be formatted"
     terraform fmt -write=true ${fmtRecursive} "${*}"
     fmtExitCode=${?}
-    echo "::set-output name=tf_actions_fmt_written::true"
+    echo "tf_actions_fmt_written=true" >> $GITHUB_OUTPUT
   fi
 
   exit ${fmtExitCode}
