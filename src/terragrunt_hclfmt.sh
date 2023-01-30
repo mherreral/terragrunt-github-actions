@@ -28,9 +28,7 @@ function terragruntHCLFmt {
   if [ "$GITHUB_EVENT_NAME" == "pull_request" ] && [ "${tfComment}" == "1" ]; then
     fmtCommentWrapper="#### \`${tfBinary} hclfmt\` Failed:
 
-\`\`\`
-${fmtOutput}
-\`\`\`
+echo "FMT OUTPUT ${fmtOutput}"
 
 *Workflow: \`${GITHUB_WORKFLOW}\`, Action: \`${GITHUB_ACTION}\`, Working Directory: \`${tfWorkingDir}\`, Workspace: \`${tfWorkspace}\`*"
 
